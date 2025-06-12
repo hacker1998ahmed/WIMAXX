@@ -1,0 +1,116 @@
+بالتأكيد! سأقوم الآن بإنشاء ملف GitHub Actions Workflow مخصص ومُحسّن خصيصًا لمشروعنا WiFi Security Tester المبني على Kivy. هذا الملف سيقوم بأتمتة عملية بناء تطبيق الأندرويد (.apk) كلما قمت بتحديث الكود على GitHub.
+
+لقد قمت بتبسيط الملف ليركز على المهمة الأساسية وهي بناء ملف APK قابل للتثبيت والتجربة، مع تضمين كل الخطوات اللازمة لبيئة Kivy/Buildozer.
+
+الملف النهائي: .github/workflows/kivy_android_build.yml
+
+هذا هو الملف الذي يجب أن تضعه في مستودعك.
+
+المسار: .github/workflows/kivy_android_build.yml
+
+# ==============================================================================
+# GitHub Actions Workflow for WiFi Security Tester (Kivy/Buildozer)
+# ==============================================================================
+#
+# الوصف:
+# يقوم هذا الـ Workflow بأتمتة عملية بناء تطبيق الأندرويد (APK) لمشروعنا
+# باستخدام Buildozer. يتم تشغيله عند الدفع إلى الفرع الرئيسي.
+#
+# ==============================================================================
+
+name: Build Android APK for WiFi Tester
+
+on:
+  # يتم تشغيله عند الدفع إلى الفرع `main` أو `master`
+  push:
+    branches:
+      - main
+      - master
+  
+  # يسمح لك بتشغيل هذا الـ Workflow يدويًا من تبويب Actions
+  workflow_dispatch:
+
+jobs:
+  build-android-apk:
+    # سيتم تشغيل المهمة على أحدث إصدار من Ubuntu
+    runs-on: ubuntu-latest
+
+    steps:
+      # الخطوة 1: تنزيل كود المشروع من المستودع
+      - name: Checkout repository code
+        uses: actions/checkout@v4
+
+      # الخطوة 2: إعداد بيئة Java (ضرورية لـ Android SDK)
+      - name: Set up Java JDK 11
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '11' # Buildozer يعمل بشكل جيد مع هذا الإصدار
+
+      # الخطوة 3: إعداد ذاكرة التخزين المؤقت (Cache) لتسريع عمليات البناء المستقبلية
+      # سيتم تخزين حزم Buildozer و Pip لتجنب تنزيلها في كل مرة
+      - name: Cache Buildozer and Pip packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.buildozer
+            ~/.pip
+          key: ${{ runner.os }}-${{ hashFiles('buildozer.spec') }}-${{ hashFiles('requirements.txt') }}
+
+      # الخطوة 4: تثبيت اعتماديات النظام التي يحتاجها Buildozer
+      - name: Install system dependencies for Buildozer
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            python3-pip \
+            build-essential \
+            git \
+            libsdl2-dev \
+            libsdl2-image-dev \
+            libsdl2-mixer-dev \
+            libsdl2-ttf-dev \
+            libportmidi-dev \
+            libswscale-dev \
+            libavformat-dev \
+            libavcodec-dev \
+            zlib1g-dev \
+            libgstreamer1.0-dev \
+            gstreamer1.0-plugins-base \
+            gstreamer1.0-plugins-good
+
+      # الخطوة 5: تثبيت Buildozer ومكتبات Python الخاصة بالمشروع
+      - name: Install Python dependencies (Buildozer & Project libs)
+        run: |
+          python3 -m pip install --upgrade pip
+          # تثبيت Cython بإصدار محدد لتجنب مشاكل التوافق
+          python3 -m pip install "cython<3.0"
+          python3 -m pip install buildozer
+          # تثبيت المكتبات من ملف requirements.txt الخاص بمشروعك
+          # إذا لم يكن لديك ملف، سيتم إنشاء واحد مؤقت
+          if [ ! -f requirements.txt ]; then
+            echo "kivy" > requirements.txt
+            echo "kivymd" >> requirements.txt
+            echo "reportlab" >> requirements.txt
+            echo "plyer" >> requirements.txt
+            echo "https://github.com/kivy-garden/graph/archive/master.zip" >> requirements.txt
+          fi
+          python3 -m pip install -r requirements.txt
+
+      # الخطوة 6: بناء ملف APK باستخدام Buildozer
+      # سيقوم Buildozer بتنزيل Android SDK و NDK تلقائيًا
+      - name: Build APK with Buildozer
+        run: |
+          # نستخدم `android debug` لأنه لا يتطلب توقيعًا معقدًا وهو مثالي للتجربة
+          buildozer -v android debug
+
+      # الخطوة 7: رفع ملف APK الناتج كـ "Artifact"
+      # هذا يسمح لك بتنزيل الملف مباشرة من صفحة GitHub Actions
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          # اسم الـ Artifact الذي سيظهر في صفحة التنزيل
+          name: WiFi-Tester-APK
+          # المسار إلى ملف APK الذي تم إنشاؤه بواسطة Buildozer
+          path: bin/*.apk
+          # إذا لم يتم العثور على الملف، ستفشل العملية (وهو المطلوب)
+          if-no-files-found: error
