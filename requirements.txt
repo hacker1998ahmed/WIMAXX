@@ -1,1 +1,6 @@
-kivy,kivymd,reportlab,pyjnius,kivy_garden.graph,plyer
+kivy
+kivymd
+reportlab
+plyer
+pyjnius
+https://github.com/kivy-garden/graph/archive/master.zip
