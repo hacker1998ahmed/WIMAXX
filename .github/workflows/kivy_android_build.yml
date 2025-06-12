@@ -1,0 +1,100 @@
+# اسم الملف: .github/workflows/kivy_android_build.yml (Optimized Version)
+
+name: Build Android APK for WiFi Tester
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+jobs:
+  build-android-apk:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository code
+        uses: actions/checkout@v4
+
+      # الخطوة 1: زيادة مساحة الذاكرة الظاهرية (Swap)
+      - name: Increase Swap Space
+        uses: pierotofy/set-swap-space@master
+        with:
+          swap-size-gb: 10 # زيادة الذاكرة إلى 10 جيجابايت
+
+      - name: Set up Java JDK 11
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+
+      - name: Cache Buildozer and Pip packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.buildozer
+            ~/.pip
+          key: ${{ runner.os }}-${{ hashFiles('buildozer.spec') }}
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            python3-pip \
+            build-essential \
+            git \
+            libsdl2-dev \
+            libsdl2-image-dev \
+            libsdl2-mixer-dev \
+            libsdl2-ttf-dev \
+            libportmidi-dev \
+            libswscale-dev \
+            libavformat-dev \
+            libavcodec-dev \
+            zlib1g-dev \
+            libgstreamer1.0-dev \
+            gstreamer1.0-plugins-base \
+            gstreamer1.0-plugins-good
+          # تنظيف الحزم لتقليل المساحة المستخدمة
+          sudo apt-get clean && sudo rm -rf /var/lib/apt/lists/*
+
+      - name: Install Python dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install "cython<3.0"
+          python3 -m pip install buildozer
+          
+          # إنشاء ملف requirements.txt إذا لم يكن موجودًا
+          if [ ! -f requirements.txt ]; then
+            echo "kivy" > requirements.txt
+            echo "kivymd" >> requirements.txt
+            echo "reportlab" >> requirements.txt
+            echo "plyer" >> requirements.txt
+            echo "pyjnius" >> requirements.txt
+            echo "https://github.com/kivy-garden/graph/archive/master.zip" >> requirements.txt
+          fi
+          
+          python3 -m pip install -r requirements.txt
+
+      - name: Prepare buildozer.spec for CI
+        run: |
+          # زيادة مستوى السجل للحصول على تفاصيل أكثر عند حدوث خطأ
+          sed -i 's/^log_level = .*$/log_level = 2/' buildozer.spec
+          # تعطيل تنبيهات معينة قد توقف العملية
+          sed -i 's/^warn_on_root = .*$/warn_on_root = 0/' buildozer.spec
+          echo "--- buildozer.spec prepared for CI ---"
+          cat buildozer.spec
+          echo "------------------------------------"
+
+      - name: Build APK with Buildozer
+        run: |
+          # `android debug` هو الأمر المطلوب
+          buildozer android debug
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: WiFi-Tester-APK
+          path: bin/*.apk
+          if-no-files-found: error
