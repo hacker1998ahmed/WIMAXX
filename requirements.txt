@@ -1,0 +1,1 @@
+python3,kivy,kivymd,reportlab,pyjnius,kivy_garden.graph,plyer
