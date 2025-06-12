@@ -1,4 +1,4 @@
-# اسم الملف: .github/workflows/kivy_android_build.yml (Final with License Fix)
+# اسم الملف: .github/workflows/kivy_android_build.yml (Final with 'yes' command fix)
 
 name: Build Android APK for WiFi Tester
 
@@ -59,7 +59,8 @@ jobs:
             zlib1g-dev \
             libgstreamer1.0-dev \
             gstreamer1.0-plugins-base \
-            gstreamer1.0-plugins-good
+            gstreamer1.0-plugins-good \
+            expect # تثبيت حزمة 'expect' التي توفر أمر 'yes'
           sudo apt-get clean && sudo rm -rf /var/lib/apt/lists/*
 
       - name: Install Python dependencies
@@ -79,26 +80,16 @@ jobs:
           
           python3 -m pip install -r requirements.txt
 
-      # --- الخطوة الجديدة والأساسية هنا ---
-      - name: Accept SDK Licenses
-        run: |
-          # إنشاء مجلدات Android SDK و licenses التي سيبحث عنها buildozer
-          mkdir -p $HOME/.buildozer/android/platform/android-sdk/licenses
-          
-          # كتابة Hashes التراخيص المقبولة في الملفات
-          # هذا يخبر sdkmanager أننا "وافقنا" على التراخيص
-          echo "24333f8a63b6825ea9c5514f83c2829b004d1fee" > $HOME/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
-          echo "84831b9409646a918e30573bab4c9c91346d8abd" > $HOME/.buildozer/android/platform/android-sdk/licenses/android-sdk-preview-license
-          echo "d975f751698a77b662f1254ddbeed3901e976f5a" > $HOME/.buildozer/android/platform/android-sdk/licenses/intel-android-extra-license
-
       - name: Prepare buildozer.spec for CI
         run: |
           sed -i 's/^log_level = .*$/log_level = 2/' buildozer.spec
           sed -i 's/^warn_on_root = .*$/warn_on_root = 0/' buildozer.spec
 
-      - name: Build APK with Buildozer
+      # --- التعديل الأساسي هنا ---
+      - name: Build APK with Buildozer (and auto-accept licenses)
         run: |
-          buildozer android debug
+          # استخدام أمر 'yes' لتمرير الموافقة تلقائيًا إلى أي طلب ترخيص
+          yes | buildozer android debug
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
