@@ -1,4 +1,4 @@
-# اسم الملف: .github/workflows/kivy_android_build.yml (Final without NDK API explicit setting)
+# اسم الملف: .github/workflows/kivy_android_build.yml (Fix for libunwind-dev dependency)
 
 name: Build Android APK for WiFi Tester
 
@@ -11,7 +11,7 @@ on:
 
 jobs:
   build-android-apk:
-    runs-on: ubuntu-22.04 # <--- هذا هو التغيير الحاسم هنا
+    runs-on: ubuntu-22.04 # <--- تأكد أنها 22.04 هنا
 
     steps:
       - name: Checkout repository code
@@ -42,8 +42,9 @@ jobs:
             ~/.buildozer
             ~/.pip
             ~/.local/share/python-for-android
-          key: ${{ runner.os }}-${{ hashFiles('buildozer.spec') }}-final-ndk-attempt # تغيير المفتاح لتحديث الكاش
+          key: ${{ runner.os }}-${{ hashFiles('buildozer.spec') }}-final-ndk-attempt-v3 # تغيير المفتاح لتحديث الكاش
 
+      # --- التعديل الأساسي هنا: إضافة libunwind-dev ---
       - name: Install system dependencies for Buildozer & Compiling
         run: |
           sudo apt-get update
@@ -52,7 +53,8 @@ jobs:
             libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev \
             libportmidi-dev libswscale-dev libavformat-dev libavcodec-dev \
             zlib1g-dev libgstreamer1.0-dev gstreamer1.0-plugins-base \
-            gstreamer1.0-plugins-good expect
+            gstreamer1.0-plugins-good expect \
+            libunwind-dev # <--- الحزمة الجديدة التي تم إضافتها
           sudo apt-get clean && sudo rm -rf /var/lib/apt/lists/*
 
       - name: Install Python dependencies
