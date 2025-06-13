@@ -35,6 +35,7 @@ version = 8.0
 
 # (List) Kivy requirements
 # قائمة المكتبات التي يعتمد عليها مشروعك. تم إضافة 'hostpython3' في البداية.
+# (تم حذف 'reportlab' لحل مشاكل التجميع)
 requirements = hostpython3,kivy,kivymd,pyjnius,plyer,https://github.com/kivy-garden/graph/archive/master.zip
 
 # (Str) Custom application icon (e.g. icon.png). Path relative to source.dir.
@@ -79,8 +80,8 @@ android.api = 28
 # (Int) Minimum API required (API 21: توافق واسع)
 android.minapi = 21
 
-# (Str) Android NDK version to use (NDK 21e: إصدار قديم ومعروف بالاستقرار مع بعض المكتبات العنيدة)
-android.ndk = 21e
+# (Str) Android NDK version to use (NDK 21c: محاولة لإصدار أكثر توافقًا مع libffi)
+android.ndk = 21c
 
 # (Int) Android SDK version to use (لا تحتاج لتحديده عادة)
 # android.sdk = 24
@@ -102,3 +103,7 @@ android.release.aab = False
 # android.release.keystore.alias = alias_name
 # android.release.keystore.password = keystore_password
 # android.release.keystore.alias_password = alias_password
+
+# (Str) Version of python-for-android to use
+# محاولة استخدام فرع 'develop' الذي قد يحتوي على أحدث الإصلاحات
+android.p4a_version = develop
