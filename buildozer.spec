@@ -1,9 +1,9 @@
 # ==============================================================================
-#      Buildozer Specification File for WiFi Security Tester
+#      Buildozer Specification File for WiFi Security Tester (NO PYJNIUS)
 # ==============================================================================
 #
-# هذا الملف هو خارطة الطريق لـ Buildozer لبناء تطبيق الأندرويد.
-# يجب أن يكون هذا الملف في الجذر الرئيسي لمشروعك.
+# هذا الملف تم تعديله لحذف 'pyjnius' لتجاوز مشاكل 'libffi'.
+# هذا قد يعطل بعض الوظائف التي تعتمد على التفاعل العميق مع Android.
 #
 # ==============================================================================
 
@@ -12,98 +12,71 @@
 # (Required) Title of your application
 title = WiFi Security Tester
 
-# (Required) Package name (lowercase, no spaces, no special characters except underscore)
+# (Required) Package name
 package.name = wifisecuritytester
 
-# (Required) Package domain (e.g., org.kivy, com.example)
+# (Required) Package domain
 package.domain = org.ahmed.wifitester
 
-# (Required) Source code directory ('.' for the current directory)
+# (Required) Source code directory
 source.dir = .
 
-# (Required) Main Python file to run (relative to source.dir)
+# (Required) Main Python file to run
 main.py = WiFiSecurityTester_Final.py
 
-# (List) List of file extensions to include in the project
+# (List) List of file extensions to include
 source.include_exts = py,png,jpg,kv,atlas,json,txt,ttf,m4
 
-# (List) List of directories to exclude from the project
+# (List) List of directories to exclude
 source.exclude_dirs = .buildozer, bin, build, venv, __pycache__, .git, .github
 
-# (Str) Application version (e.g., 1.0.0). Will be updated by GitHub Actions.
+# (Str) Application version
 version = 8.0
 
-# (List) Kivy requirements
-# قائمة المكتبات التي يعتمد عليها مشروعك. تم إضافة 'hostpython3' في البداية.
-# (تم حذف 'reportlab' لحل مشاكل التجميع)
-requirements = hostpython3,kivy,kivymd,pyjnius,plyer,https://github.com/kivy-garden/graph/archive/master.zip
+# (List) Kivy requirements (pyjnius and hostpython3 have been removed)
+requirements = kivy,kivymd,plyer,https://github.com/kivy-garden/graph/archive/master.zip
 
-# (Str) Custom application icon (e.g. icon.png). Path relative to source.dir.
-# تأكد من وجود هذا الملف في المسار المحدد
+# (Str) Custom application icon
 icon.filename = wimax/assets/icons/app_icon.png
 
-# (Str) Presplash background color (for Android AAB)
-# presplash.color = #000000
-
-# (Str) Presplash image (e.g., presplash.png). Path relative to source.dir.
-# presplash.filename = wimax/assets/icons/presplash.png
-
-# (Str) Orientation (all, portrait, landscape)
+# (Str) Orientation
 orientation = portrait
 
-# (Boolean) Indicate if the application should be fullscreen or not
+# (Boolean) Fullscreen
 fullscreen = 0
 
 
-# -----------------------------------------------------------------------------
-# Buildozer specific options
-# -----------------------------------------------------------------------------
 [buildozer]
 
-# (Int) Log level (0 = error, 1 = info, 2 = debug). Will be updated by GitHub Actions.
+# Log level (will be updated by GitHub Actions)
 log_level = 1
 
-# (Int) Display warning if buildozer is run as root (0 = False, 1 = True). Will be updated by GitHub Actions.
+# Warn on root (will be updated by GitHub Actions)
 warn_on_root = 1
 
-# -----------------------------------------------------------------------------
-# Android specific options
-# -----------------------------------------------------------------------------
+
 [android]
 
-# (List) Android permissions
+# Android permissions (some may no longer be strictly needed without pyjnius, but keeping for safety)
 android.permissions = INTERNET,ACCESS_NETWORK_STATE,ACCESS_WIFI_STATE,CHANGE_WIFI_STATE,ACCESS_FINE_LOCATION,ACCESS_COARSE_LOCATION,READ_EXTERNAL_STORAGE,WRITE_EXTERNAL_STORAGE,FOREGROUND_SERVICE
 
-# (Int) Android API to use (API 28: معروف بالاستقرار)
+# Android API to use
 android.api = 28
 
-# (Int) Minimum API required (API 21: توافق واسع)
+# Minimum API required
 android.minapi = 21
 
-# (Str) Android NDK version to use (NDK 21c: محاولة لإصدار أكثر توافقًا مع libffi)
-android.ndk = 21c
+# Android NDK version to use (less critical now, but good to keep a stable one)
+android.ndk = 21e # Or simply remove this line to let Buildozer choose
 
-# (Int) Android SDK version to use (لا تحتاج لتحديده عادة)
-# android.sdk = 24
-
-# (Str) The Android arch to build for
+# The Android arch to build for
 android.arch = arm64-v8a, armeabi-v7a
 
-# (Int) The Android version code. (Will be updated by GitHub Actions)
+# Android version code (will be updated by GitHub Actions)
 android.versioncode = 1
 
-# (List) A list of paths to files that will be copied to the /assets folder
+# Files to be copied to the /assets folder
 android.add_src = wimax/assets
 
-# (Boolean) Create an Android App Bundle (aab).
+# Create an Android App Bundle (aab)
 android.release.aab = False
-
-# (Str) Keystore used to sign the AAB (for release builds only)
-# android.release.keystore = /path/to/keystore.keystore
-# android.release.keystore.alias = alias_name
-# android.release.keystore.password = keystore_password
-# android.release.keystore.alias_password = alias_password
-
-# (Str) Version of python-for-android to use
-# محاولة استخدام فرع 'develop' الذي قد يحتوي على أحدث الإصلاحات
-android.p4a_version = develop
