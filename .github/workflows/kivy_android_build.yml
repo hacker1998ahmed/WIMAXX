@@ -1,4 +1,4 @@
-# اسم الملف: .github/workflows/kivy_android_build.yml (Final with Python 3.9 attempt)
+# اسم الملف: .github/workflows/kivy_android_build.yml (Fix apt-get dependencies for gstreamer)
 
 name: Build Android APK for WiFi Tester
 
@@ -11,7 +11,7 @@ on:
 
 jobs:
   build-android-apk:
-    runs-on: ubuntu-22.04 # لا يزال يستخدم Ubuntu 22.04
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout repository code
@@ -42,27 +42,30 @@ jobs:
             ~/.buildozer
             ~/.pip
             ~/.local/share/python-for-android
-          # تغيير المفتاح لتحديث الكاش بسبب تغيير إصدار Python
-          key: ${{ runner.os }}-${{ hashFiles('buildozer.spec') }}-python39-attempt
+          key: ${{ runner.os }}-${{ hashFiles('buildozer.spec') }}-final-apt-fix-v4 # تغيير المفتاح لتحديث الكاش
 
-      - name: Install system dependencies for Buildozer & Compiling
+      # --- التعديل الأساسي هنا: طريقة تثبيت اعتماديات النظام ---
+      - name: Install core system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
+          sudo apt-get install -y \
             python3-pip build-essential git m4 autoconf automake libtool pkg-config \
-            libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev \
-            libportmidi-dev libswscale-dev libavformat-dev libavcodec-dev \
-            zlib1g-dev libgstreamer1.0-dev gstreamer1.0-plugins-base \
-            gstreamer1.0-plugins-good expect
+            expect libc6-dev libunwind-dev # إضافة libc6-dev و libunwind-dev هنا
           sudo apt-get clean && sudo rm -rf /var/lib/apt/lists/*
 
-      # --- التعديل الأساسي هنا: تحديد Python 3.9 ---
-      - name: Install Python dependencies (with Python 3.9)
-        uses: actions/setup-python@v5 # استخدام هذا Action لتحديد إصدار Python
-        with:
-          python-version: '3.9' # <-- تحديد Python 3.9
+      - name: Install Kivy related system dependencies (GStreamer, SDL2)
+        run: |
+          sudo apt-get update # تحديث مرة أخرى بعد تثبيت الأساسيات
+          sudo apt-get install -y \
+            libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev \
+            libportmidi-dev libswscale-dev libavformat-dev libavcodec-dev \
+            zlib1g-dev \
+            libgstreamer1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good
+          sudo apt-get clean && sudo rm -rf /var/lib/apt/lists/*
 
-      - run: | # خطوات تثبيت Pip بعد إعداد Python
+
+      - name: Install Python dependencies
+        run: |
           python3 -m pip install --upgrade pip
           python3 -m pip install "cython<3.0"
           python3 -m pip install buildozer
