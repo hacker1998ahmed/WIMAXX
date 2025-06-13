@@ -86,7 +86,7 @@ android.minapi = 21
 
 # (Int) Android NDK version to use (Buildozer عادة ما يختار الأفضل)
 # ✅ تحديث NDK API إلى 26 هنا مباشرة
-android.ndk_api = 26
+#android.ndk_api = 26
 
 # (Int) Android SDK version to use (Buildozer عادة ما يختار الأفضل)
 # android.sdk = 24
