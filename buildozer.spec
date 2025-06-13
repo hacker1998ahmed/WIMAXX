@@ -34,11 +34,11 @@ source.exclude_dirs = .buildozer, bin, build, venv, __pycache__, .git, .github
 version = 8.0
 
 # (List) Kivy requirements
-# قائمة المكتبات التي يعتمد عليها مشروعك. هذه هي القائمة الصحيحة لمشروعنا.
-# تم حذف 'reportlab' لحل مشاكل التجميع.
-requirements = kivy,kivymd,pyjnius,plyer,https://github.com/kivy-garden/graph/archive/master.zip
+# قائمة المكتبات التي يعتمد عليها مشروعك. تم إضافة 'hostpython3' في البداية.
+requirements = hostpython3,kivy,kivymd,pyjnius,plyer,https://github.com/kivy-garden/graph/archive/master.zip
 
 # (Str) Custom application icon (e.g. icon.png). Path relative to source.dir.
+# تأكد من وجود هذا الملف في المسار المحدد
 icon.filename = wimax/assets/icons/app_icon.png
 
 # (Str) Presplash background color (for Android AAB)
@@ -79,7 +79,7 @@ android.api = 28
 # (Int) Minimum API required (API 21: توافق واسع)
 android.minapi = 21
 
-# (Str) Android NDK version to use (NDK 23b: معروف بالاستقرار مع P4A)
+# (Str) Android NDK version to use (NDK 21e: إصدار قديم ومعروف بالاستقرار مع بعض المكتبات العنيدة)
 android.ndk = 21e
 
 # (Int) Android SDK version to use (لا تحتاج لتحديده عادة)
@@ -102,8 +102,3 @@ android.release.aab = False
 # android.release.keystore.alias = alias_name
 # android.release.keystore.password = keystore_password
 # android.release.keystore.alias_password = alias_password
-
-# (Str) Version of python-for-android to use
-# Try 'master' (default but specified for clarity) or 'develop'.
-# If problems persist, a specific commit hash might be needed:
-# android.p4a_version = master
