@@ -79,14 +79,14 @@ warn_on_root = 0
 android.permissions = INTERNET,ACCESS_NETWORK_STATE,ACCESS_WIFI_STATE,CHANGE_WIFI_STATE,ACCESS_FINE_LOCATION,ACCESS_COARSE_LOCATION,READ_EXTERNAL_STORAGE,WRITE_EXTERNAL_STORAGE,FOREGROUND_SERVICE
 
 # (Int) Android API to use (هذا هو API level الذي ستستهدفه، API 30 جيد)
-android.api = 30
+android.api = 28
 
 # (Int) Minimum API required (أقل إصدار Android يمكن للتطبيق أن يعمل عليه)
 android.minapi = 21
 
 # (Int) Android NDK version to use (Buildozer عادة ما يختار الأفضل)
 # ✅ تحديث NDK API إلى 26 هنا مباشرة
-#android.ndk_api = 26
+android.ndk = 23b # أو 21b إذا لم ينجح 23b
 
 # (Int) Android SDK version to use (Buildozer عادة ما يختار الأفضل)
 # android.sdk = 24
