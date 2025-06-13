@@ -1,4 +1,4 @@
-# اسم الملف: .github/workflows/kivy_android_build.yml (Fix apt-get dependencies for gstreamer)
+# اسم الملف: .github/workflows/kivy_android_build.yml (No ReportLab Version)
 
 name: Build Android APK for WiFi Tester
 
@@ -11,18 +11,16 @@ on:
 
 jobs:
   build-android-apk:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository code
         uses: actions/checkout@v4
 
-      - name: List files in the repository root (for verification)
+      - name: List files in the repository root
         run: |
           echo "Listing files in the current directory:"
           ls -la
-          echo "Listing files in wimax/assets/tools:"
-          ls -la wimax/assets/tools || true
 
       - name: Increase Swap Space
         uses: pierotofy/set-swap-space@master
@@ -41,28 +39,32 @@ jobs:
           path: |
             ~/.buildozer
             ~/.pip
-            ~/.local/share/python-for-android
-          key: ${{ runner.os }}-${{ hashFiles('buildozer.spec') }}-final-apt-fix-v4 # تغيير المفتاح لتحديث الكاش
+          key: ${{ runner.os }}-${{ hashFiles('buildozer.spec') }}
 
-      # --- التعديل الأساسي هنا: طريقة تثبيت اعتماديات النظام ---
-      - name: Install core system dependencies
+      - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
-            python3-pip build-essential git m4 autoconf automake libtool pkg-config \
-            expect libc6-dev libunwind-dev # إضافة libc6-dev و libunwind-dev هنا
-          sudo apt-get clean && sudo rm -rf /var/lib/apt/lists/*
-
-      - name: Install Kivy related system dependencies (GStreamer, SDL2)
-        run: |
-          sudo apt-get update # تحديث مرة أخرى بعد تثبيت الأساسيات
-          sudo apt-get install -y \
-            libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev \
-            libportmidi-dev libswscale-dev libavformat-dev libavcodec-dev \
+          sudo apt-get install -y --no-install-recommends \
+            python3-pip \
+            build-essential \
+            git \
+            autoconf \
+            automake \
+            libtool \
+            libsdl2-dev \
+            libsdl2-image-dev \
+            libsdl2-mixer-dev \
+            libsdl2-ttf-dev \
+            libportmidi-dev \
+            libswscale-dev \
+            libavformat-dev \
+            libavcodec-dev \
             zlib1g-dev \
-            libgstreamer1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good
+            libgstreamer1.0-dev \
+            gstreamer1.0-plugins-base \
+            gstreamer1.0-plugins-good \
+            expect
           sudo apt-get clean && sudo rm -rf /var/lib/apt/lists/*
-
 
       - name: Install Python dependencies
         run: |
@@ -70,16 +72,24 @@ jobs:
           python3 -m pip install "cython<3.0"
           python3 -m pip install buildozer
           
+          # --- التعديل هنا: حذف reportlab ---
           if [ ! -f requirements.txt ]; then
             echo "kivy" > requirements.txt
             echo "kivymd" >> requirements.txt
-            echo "reportlab" >> requirements.txt
+            # echo "reportlab" >> requirements.txt # تم حذف هذا السطر
             echo "plyer" >> requirements.txt
             echo "pyjnius" >> requirements.txt
             echo "https://github.com/kivy-garden/graph/archive/master.zip" >> requirements.txt
           fi
           
           python3 -m pip install -r requirements.txt
+
+      - name: Prepare buildozer.spec for CI
+        run: |
+          sed -i 's/^log_level = .*$/log_level = 2/' buildozer.spec
+          sed -i 's/^warn_on_root = .*$/warn_on_root = 0/' buildozer.spec
+          # تعديل سطر requirements في buildozer.spec للتأكد من حذف reportlab
+          sed -i 's/^requirements = python3,kivy,kivymd,reportlab,pyjnius,plyer,https:\/\/github.com\/kivy-garden\/graph\/archive\/master.zip$/requirements = python3,kivy,kivymd,pyjnius,plyer,https:\/\/github.com\/kivy-garden\/graph\/archive\/master.zip/' buildozer.spec
 
       - name: Build APK with Buildozer (and auto-accept licenses)
         run: |
