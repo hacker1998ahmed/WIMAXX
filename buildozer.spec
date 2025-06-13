@@ -81,7 +81,7 @@ android.api = 28
 android.minapi = 21
 
 # (Str) Android NDK version to use (NDK 21c: محاولة لإصدار أكثر توافقًا مع libffi)
-android.ndk = 21c
+android.ndk = 25b
 
 # (Int) Android SDK version to use (لا تحتاج لتحديده عادة)
 # android.sdk = 24
