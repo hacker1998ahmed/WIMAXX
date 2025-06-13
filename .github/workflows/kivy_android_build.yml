@@ -1,6 +1,6 @@
-# .github/workflows/kivy_android_build.yml (Corrected Docker Image Tag)
+# .github/workflows/kivy_android_build.yml (Back to Manual Install + Libffi Fixes)
 
-name: Build Android APK (Dockerized Buildozer)
+name: Build Android APK (Manual Install & Libffi Focus)
 
 on:
   push:
@@ -11,7 +11,7 @@ on:
 
 jobs:
   build-android-apk:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest # العودة إلى أحدث إصدار من Ubuntu
 
     steps:
       - name: Checkout repository code
@@ -22,12 +22,101 @@ jobs:
           echo "Listing files in the current directory:"
           ls -la
 
-      # ✅ تصحيح اسم صورة Docker والـ tag الخاص بها
-      # استخدام 'kivy/buildozer:latest' أو 'kivy/buildozer:python3'
-      - name: Build APK using Dockerized Buildozer
-        uses: docker://kivy/buildozer:latest # تم تغيير هذا إلى 'latest'
+      - name: Increase Swap Space
+        uses: pierotofy/set-swap-space@master
         with:
-          args: python3 -m buildozer android debug # الأمر لتشغيل Buildozer داخل الـ container
+          swap-size-gb: 6 # الحجم الذي عمل جيدًا
+
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.9 # إصدار Python المستقر لـ Buildozer
+
+      - name: Cache Buildozer and Pip packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.buildozer
+            ~/.pip
+          key: ${{ runner.os }}-${{ hashFiles('buildozer.spec') }}
+
+      - name: Set up Java JDK 11
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+
+      # ✅ تثبيت اعتماديات النظام مع libffi-dev و python3-dev
+      - name: Install system dependencies (including libffi-dev & python3-dev)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            python3-pip \
+            python3-dev \
+            build-essential \
+            git \
+            autoconf \
+            automake \
+            libtool \
+            libffi-dev \ # ✅ إضافة حزمة تطوير libffi
+            libsdl2-dev \
+            libsdl2-image-dev \
+            libsdl2-mixer-dev \
+            libsdl2-ttf-dev \
+            libportmidi-dev \
+            libswscale-dev \
+            libavformat-dev \
+            libavcodec-dev \
+            zlib1g-dev \
+            libgstreamer1.0-dev \
+            gstreamer1.0-plugins-base \
+            gstreamer1.0-plugins-good \
+            expect
+          sudo apt-get clean && sudo rm -rf /var/lib/apt/lists/*
+
+      # ✅ تثبيت python-for-android من فرع develop
+      - name: Install Python dependencies (Buildozer & P4A develop & Project libs)
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install "cython<3.0" # تثبيت Cython 0.29.x
+          python3 -m pip install buildozer
+          
+          # ✅ تثبيت python-for-android من فرع develop
+          # هذا قد يحتوي على إصلاحات أحدث لمشاكل التجميع مثل libffi
+          python3 -m pip install git+https://github.com/kivy/python-for-android.git@develop#egg=python-for-android
+          
+          # إنشاء ملف requirements.txt
+          if [ ! -f requirements.txt ]; then
+            echo "hostpython3" > requirements.txt
+            echo "kivy" >> requirements.txt
+            echo "kivymd" >> requirements.txt
+            echo "pyjnius" >> requirements.txt # ✅ إعادة pyjnius
+            echo "plyer" >> requirements.txt
+            echo "https://github.com/kivy-garden/graph/archive/master.zip" >> requirements.txt
+          fi
+          
+          python3 -m pip install -r requirements.txt
+
+      - name: Prepare buildozer.spec for CI environment
+        run: |
+          sed -i 's/^log_level = .*$/log_level = 2/' buildozer.spec
+          sed -i 's/^warn_on_root = .*$/warn_on_root = 0/' buildozer.spec
+          # تحديث سطر requirements في buildozer.spec (يجب أن يكون مطابقًا لما تم تثبيته)
+          sed -i 's/^requirements = .*$/requirements = hostpython3,kivy,kivymd,pyjnius,plyer,https:\/\/github.com\/kivy-garden\/graph\/archive\/master.zip/' buildozer.spec
+          # تعيين رقم الإصدار ورقم البناء
+          sed -i "s/^version = .*$/version = ${{ github.run_number }}/" buildozer.spec
+          sed -i "s/^android.versioncode = .*$/android.versioncode = ${{ github.run_number }}/" buildozer.spec
+          # ✅ تعيين P4A version صراحة إلى develop في buildozer.spec (مهم)
+          sed -i "s/^#\s*android.p4a_version\s*=.*$/android.p4a_version = develop/" buildozer.spec # لإلغاء التعليق وتعيين develop
+          if ! grep -q "android.p4a_version" buildozer.spec; then echo "android.p4a_version = develop" >> buildozer.spec; fi # إضافة إذا لم يكن موجودًا
+          
+          echo "--- buildozer.spec final state ---"
+          cat buildozer.spec
+          echo "----------------------------------"
+
+      - name: Build APK with Buildozer (auto-accept licenses)
+        run: |
+          yes | buildozer android debug
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
