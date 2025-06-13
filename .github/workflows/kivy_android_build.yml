@@ -1,4 +1,4 @@
-# اسم الملف: .github/workflows/kivy_android_build.yml (Corrected apt-get install)
+# اسم الملف: .github/workflows/kivy_android_build.yml (Attempt 1: Specific Build Tools Versions)
 
 name: Build Android APK for WiFi Tester
 
@@ -16,13 +16,6 @@ jobs:
     steps:
       - name: Checkout repository code
         uses: actions/checkout@v4
-
-      - name: List files in the repository root (for verification)
-        run: |
-          echo "Listing files in the current directory:"
-          ls -la
-          echo "Listing files in wimax/assets/tools:"
-          ls -la wimax/assets/tools || true
 
       - name: Increase Swap Space
         uses: pierotofy/set-swap-space@master
@@ -42,13 +35,45 @@ jobs:
             ~/.buildozer
             ~/.pip
             ~/.local/share/python-for-android
-          key: ${{ runner.os }}-${{ hashFiles('buildozer.spec') }}
+          key: ${{ runner.os }}-${{ hashFiles('buildozer.spec') }}-v2 # تغيير المفتاح لتحديث الكاش
 
-      # --- التعديل الأساسي هنا: سطر واحد طويل لأمر apt-get install ---
-      - name: Install system dependencies for Buildozer & Compiling
+      - name: Install system dependencies (Specific Versions)
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends python3-pip build-essential git m4 autoconf automake libtool pkg-config libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev libportmidi-dev libswscale-dev libavformat-dev libavcodec-dev zlib1g-dev libgstreamer1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good expect
+          # تثبيت أدوات البناء بإصدارات محددة
+          sudo apt-get install -y --no-install-recommends \
+            python3-pip \
+            build-essential \
+            git \
+            m4 \
+            pkg-config \
+            expect \
+            # تثبيت autoconf 2.69 و libtool 2.4.6 (إصدارات معروفة بالاستقرار)
+            # هذه تتطلب إضافة مستودعات أقدم أو تثبيت يدوي
+            # لكن في GitHub Actions، الأسهل هو محاولة تثبيتها مباشرة
+            # إذا لم تكن متوفرة، سنضطر للبحث عن PPA أو تجميعها يدوياً
+            autoconf=2.69-1 \ # هذا قد لا يكون متاحاً مباشرة في Noble
+            automake=1:1.16.1-4 \ # هذا قد لا يكون متاحاً مباشرة في Noble
+            libtool=2.4.6-15 \ # هذا قد لا يكون متاحاً مباشرة في Noble
+            # إذا فشلت هذه، سنعود للنسخة العامة أو نبحث عن حل بديل
+            
+            # بقية الاعتماديات
+            libsdl2-dev \
+            libsdl2-image-dev \
+            libsdl2-mixer-dev \
+            libsdl2-ttf-dev \
+            libportmidi-dev \
+            libswscale-dev \
+            libavformat-dev \
+            libavcodec-dev \
+            zlib1g-dev \
+            libgstreamer1.0-dev \
+            gstreamer1.0-plugins-base \
+            gstreamer1.0-plugins-good
+          
+          # إذا فشلت الأوامر أعلاه، يمكن تجربة:
+          # sudo apt-get install -y autoconf automake libtool # للتأكد من وجودها على الأقل
+          
           sudo apt-get clean && sudo rm -rf /var/lib/apt/lists/*
 
       - name: Install Python dependencies
