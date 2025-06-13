@@ -1,4 +1,4 @@
-# اسم الملف: .github/workflows/kivy_android_build.yml (Fix for libunwind-dev dependency)
+# اسم الملف: .github/workflows/kivy_android_build.yml (Final with Python 3.9 attempt)
 
 name: Build Android APK for WiFi Tester
 
@@ -11,7 +11,7 @@ on:
 
 jobs:
   build-android-apk:
-    runs-on: ubuntu-22.04 # <--- تأكد أنها 22.04 هنا
+    runs-on: ubuntu-22.04 # لا يزال يستخدم Ubuntu 22.04
 
     steps:
       - name: Checkout repository code
@@ -42,9 +42,9 @@ jobs:
             ~/.buildozer
             ~/.pip
             ~/.local/share/python-for-android
-          key: ${{ runner.os }}-${{ hashFiles('buildozer.spec') }}-final-ndk-attempt-v3 # تغيير المفتاح لتحديث الكاش
+          # تغيير المفتاح لتحديث الكاش بسبب تغيير إصدار Python
+          key: ${{ runner.os }}-${{ hashFiles('buildozer.spec') }}-python39-attempt
 
-      # --- التعديل الأساسي هنا: إضافة libunwind-dev ---
       - name: Install system dependencies for Buildozer & Compiling
         run: |
           sudo apt-get update
@@ -53,12 +53,16 @@ jobs:
             libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev \
             libportmidi-dev libswscale-dev libavformat-dev libavcodec-dev \
             zlib1g-dev libgstreamer1.0-dev gstreamer1.0-plugins-base \
-            gstreamer1.0-plugins-good expect \
-            libunwind-dev # <--- الحزمة الجديدة التي تم إضافتها
+            gstreamer1.0-plugins-good expect
           sudo apt-get clean && sudo rm -rf /var/lib/apt/lists/*
 
-      - name: Install Python dependencies
-        run: |
+      # --- التعديل الأساسي هنا: تحديد Python 3.9 ---
+      - name: Install Python dependencies (with Python 3.9)
+        uses: actions/setup-python@v5 # استخدام هذا Action لتحديد إصدار Python
+        with:
+          python-version: '3.9' # <-- تحديد Python 3.9
+
+      - run: | # خطوات تثبيت Pip بعد إعداد Python
           python3 -m pip install --upgrade pip
           python3 -m pip install "cython<3.0"
           python3 -m pip install buildozer
