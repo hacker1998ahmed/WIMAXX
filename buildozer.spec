@@ -34,12 +34,11 @@ source.exclude_dirs = .buildozer, bin, build, venv, __pycache__, .git, .github
 version = 8.0
 
 # (List) Kivy requirements
-# تم تحديث هذه القائمة لحذف 'reportlab' وضمان التوافق.
-# 'python3' هو إصدار المفسر وليس مكتبة PIP
+# قائمة المكتبات التي يعتمد عليها مشروعك. هذه هي القائمة الصحيحة لمشروعنا.
+# تم حذف 'reportlab' لحل مشاكل التجميع.
 requirements = kivy,kivymd,pyjnius,plyer,https://github.com/kivy-garden/graph/archive/master.zip
 
 # (Str) Custom application icon (e.g. icon.png). Path relative to source.dir.
-# تأكد من وجود هذا الملف في المسار المحدد
 icon.filename = wimax/assets/icons/app_icon.png
 
 # (Str) Presplash background color (for Android AAB)
@@ -72,37 +71,30 @@ warn_on_root = 1
 [android]
 
 # (List) Android permissions
-# قائمة الصلاحيات الضرورية لعمل التطبيق (الإنترنت، الواي فاي، الموقع، التخزين، خدمة الواجهة الأمامية)
-# ACCESS_FINE_LOCATION و ACCESS_COARSE_LOCATION مهمتان لفحص الواي فاي الحديث
-# FOREGROUND_SERVICE قد تكون ضرورية للعمليات الطويلة في الخلفية
 android.permissions = INTERNET,ACCESS_NETWORK_STATE,ACCESS_WIFI_STATE,CHANGE_WIFI_STATE,ACCESS_FINE_LOCATION,ACCESS_COARSE_LOCATION,READ_EXTERNAL_STORAGE,WRITE_EXTERNAL_STORAGE,FOREGROUND_SERVICE
 
-# (Int) Android API to use (هذا الإصدار 28 أكثر استقرارًا لـ pyjnius والمكتبات الأخرى)
+# (Int) Android API to use (API 28: معروف بالاستقرار)
 android.api = 28
 
-# (Int) Minimum API required (API 21 هو خيار جيد للتوافق الأوسع)
+# (Int) Minimum API required (API 21: توافق واسع)
 android.minapi = 21
 
-# (Str) Android NDK version to use (مثل r21e, r23b, r25b). r23b غالبًا ما يكون مستقرًا.
+# (Str) Android NDK version to use (NDK 23b: معروف بالاستقرار مع P4A)
 android.ndk = 23b
 
-# (Int) Android SDK version to use (عادة لا تحتاج لتحديده، Buildozer يختار الأحدث)
+# (Int) Android SDK version to use (لا تحتاج لتحديده عادة)
 # android.sdk = 24
 
-# (Str) The Android arch to build for, choices: armeabi-v7a, arm64-v8a, x86, x86_64
-# arm64-v8a هو المعيار للأجهزة الحديثة، و armeabi-v7a للأجهزة الأقدم 32 بت.
+# (Str) The Android arch to build for
 android.arch = arm64-v8a, armeabi-v7a
 
-# (Int) The Android version code. (Each update on the store should have a higher version code)
-# سيتم تحديثه بواسطة GitHub Actions بناءً على رقم تشغيل الـ Workflow
+# (Int) The Android version code. (Will be updated by GitHub Actions)
 android.versioncode = 1
 
 # (List) A list of paths to files that will be copied to the /assets folder
-# Files and directories in this list will be recursively copied.
-# ✅ هذه هي الخطوة الأهم: تضمين مجلد الأدوات والأيقونات داخل حزمة التطبيق
 android.add_src = wimax/assets
 
-# (Boolean) Create an Android App Bundle (aab). يمكن تفعيله لاحقًا للرفع إلى متجر Google Play.
+# (Boolean) Create an Android App Bundle (aab).
 android.release.aab = False
 
 # (Str) Keystore used to sign the AAB (for release builds only)
