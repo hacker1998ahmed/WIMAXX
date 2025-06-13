@@ -1,6 +1,6 @@
-# اسم الملف: .github/workflows/kivy_android_build.yml (Final attempt: ubuntu-20.04)
+# .github/workflows/kivy_android_build.yml (NO PYJNIUS VERSION)
 
-name: Build Android APK for WiFi Tester
+name: Build Android APK for WiFi Tester (No Jnius)
 
 on:
   push:
@@ -11,8 +11,7 @@ on:
 
 jobs:
   build-android-apk:
-    # تغيير بيئة التشغيل إلى Ubuntu 20.04 LTS
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-20.04 # Keeping 20.04 as it worked for other steps
 
     steps:
       - name: Checkout repository code
@@ -78,11 +77,10 @@ jobs:
           python3 -m pip install "cython<3.0"
           python3 -m pip install buildozer
           
+          # إنشاء ملف requirements.txt (بدون hostpython3 و pyjnius)
           if [ ! -f requirements.txt ]; then
-            echo "hostpython3" > requirements.txt
-            echo "kivy" >> requirements.txt
+            echo "kivy" > requirements.txt
             echo "kivymd" >> requirements.txt
-            echo "pyjnius" >> requirements.txt
             echo "plyer" >> requirements.txt
             echo "https://github.com/kivy-garden/graph/archive/master.zip" >> requirements.txt
           fi
@@ -93,7 +91,8 @@ jobs:
         run: |
           sed -i 's/^log_level = .*$/log_level = 2/' buildozer.spec
           sed -i 's/^warn_on_root = .*$/warn_on_root = 0/' buildozer.spec
-          sed -i 's/^requirements = .*$/requirements = hostpython3,kivy,kivymd,pyjnius,plyer,https:\/\/github.com\/kivy-garden\/graph\/archive\/master.zip/' buildozer.spec
+          # تحديث سطر requirements في buildozer.spec
+          sed -i 's/^requirements = .*$/requirements = kivy,kivymd,plyer,https:\/\/github.com\/kivy-garden\/graph\/archive\/master.zip/' buildozer.spec
           sed -i "s/^version = .*$/version = ${{ github.run_number }}/" buildozer.spec
           sed -i "s/^android.versioncode = .*$/android.versioncode = ${{ github.run_number }}/" buildozer.spec
 
