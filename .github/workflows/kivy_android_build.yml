@@ -1,12 +1,4 @@
-# ==============================================================================
-# GitHub Actions Workflow for WiFi Security Tester (Kivy/Buildozer)
-# ==============================================================================
-#
-# الوصف:
-# يقوم هذا الـ Workflow بأتمتة عملية بناء تطبيق الأندرويد (APK) لمشروعنا
-# باستخدام Buildozer. يركز على الاستقرار وتحسين استخدام الموارد.
-#
-# ==============================================================================
+# اسم الملف: .github/workflows/kivy_android_build.yml (Final attempt: ubuntu-20.04)
 
 name: Build Android APK for WiFi Tester
 
@@ -19,7 +11,8 @@ on:
 
 jobs:
   build-android-apk:
-    runs-on: ubuntu-latest
+    # تغيير بيئة التشغيل إلى Ubuntu 20.04 LTS
+    runs-on: ubuntu-20.04
 
     steps:
       - name: Checkout repository code
@@ -30,18 +23,15 @@ jobs:
           echo "Listing files in the current directory:"
           ls -la
 
-      # ✅ حل مشكلة "No space left on device"
-      # تقليل حجم الـ Swap المطلوب ليتناسب مع مساحة القرص المتاحة في GitHub Actions
       - name: Increase Swap Space
         uses: pierotofy/set-swap-space@master
         with:
-          swap-size-gb: 6 # تم تغيير هذا من 10 إلى 6 جيجابايت
+          swap-size-gb: 6
 
-      - name: Set up Java JDK 11
-        uses: actions/setup-java@v4
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v5
         with:
-          distribution: 'temurin'
-          java-version: '11'
+          python-version: 3.9
 
       - name: Cache Buildozer and Pip packages
         uses: actions/cache@v4
@@ -50,6 +40,12 @@ jobs:
             ~/.buildozer
             ~/.pip
           key: ${{ runner.os }}-${{ hashFiles('buildozer.spec') }}
+
+      - name: Set up Java JDK 11
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '11'
 
       - name: Install system dependencies (including build tools)
         run: |
@@ -73,18 +69,17 @@ jobs:
             libgstreamer1.0-dev \
             gstreamer1.0-plugins-base \
             gstreamer1.0-plugins-good \
-            expect # لـ `yes` command
+            expect
           sudo apt-get clean && sudo rm -rf /var/lib/apt/lists/*
 
       - name: Install Python dependencies (Buildozer & Project libs)
         run: |
           python3 -m pip install --upgrade pip
-          python3 -m pip install "cython<3.0" # تثبيت Cython 0.29.x
+          python3 -m pip install "cython<3.0"
           python3 -m pip install buildozer
           
-          # إنشاء ملف requirements.txt إذا لم يكن موجودًا (وبالتنسيق الصحيح)
           if [ ! -f requirements.txt ]; then
-            echo "hostpython3" > requirements.txt # إضافة hostpython3 هنا
+            echo "hostpython3" > requirements.txt
             echo "kivy" >> requirements.txt
             echo "kivymd" >> requirements.txt
             echo "pyjnius" >> requirements.txt
@@ -96,23 +91,14 @@ jobs:
 
       - name: Prepare buildozer.spec for CI environment
         run: |
-          # زيادة مستوى السجل للحصول على تفاصيل debugging كاملة
           sed -i 's/^log_level = .*$/log_level = 2/' buildozer.spec
-          # تعطيل تنبيهات root (لتجنب التوقف غير الضروري)
           sed -i 's/^warn_on_root = .*$/warn_on_root = 0/' buildozer.spec
-          # تحديث سطر requirements في buildozer.spec للتأكد من احتوائه على hostpython3
-          # (هذا السطر يحل محل سطر requirements بالكامل)
           sed -i 's/^requirements = .*$/requirements = hostpython3,kivy,kivymd,pyjnius,plyer,https:\/\/github.com\/kivy-garden\/graph\/archive\/master.zip/' buildozer.spec
-          # تعيين رقم الإصدار ورقم البناء من متغيرات GitHub Actions
           sed -i "s/^version = .*$/version = ${{ github.run_number }}/" buildozer.spec
           sed -i "s/^android.versioncode = .*$/android.versioncode = ${{ github.run_number }}/" buildozer.spec
-          echo "--- buildozer.spec final state ---"
-          cat buildozer.spec
-          echo "----------------------------------"
 
       - name: Build APK with Buildozer (auto-accept licenses)
         run: |
-          # استخدام 'yes' لتجاوز طلبات التراخيص التفاعلية
           yes | buildozer android debug
 
       - name: Upload APK Artifact
