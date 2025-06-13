@@ -80,7 +80,7 @@ android.api = 28
 android.minapi = 21
 
 # (Str) Android NDK version to use (NDK 23b: معروف بالاستقرار مع P4A)
-android.ndk = 23b
+android.ndk = 21e
 
 # (Int) Android SDK version to use (لا تحتاج لتحديده عادة)
 # android.sdk = 24
