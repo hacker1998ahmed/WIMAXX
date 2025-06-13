@@ -1,4 +1,4 @@
-# اسم الملف: .github/workflows/kivy_android_build.yml (Cleaned apt-get install line)
+# اسم الملف: .github/workflows/kivy_android_build.yml (Final without NDK API explicit setting)
 
 name: Build Android APK for WiFi Tester
 
@@ -42,9 +42,8 @@ jobs:
             ~/.buildozer
             ~/.pip
             ~/.local/share/python-for-android
-          key: ${{ runner.os }}-${{ hashFiles('buildozer.spec') }}
+          key: ${{ runner.os }}-${{ hashFiles('buildozer.spec') }}-final-ndk-attempt # تغيير المفتاح لتحديث الكاش
 
-      # --- التعديل الأساسي هنا: إزالة التعليقات من سطر apt-get install ---
       - name: Install system dependencies for Buildozer & Compiling
         run: |
           sudo apt-get update
