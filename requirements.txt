@@ -1,6 +1,5 @@
 kivy
 kivymd
-reportlab==4.0.0 # <--- التغيير هنا، جرب هذا الإصدار أولاً
 plyer
 pyjnius
 https://github.com/kivy-garden/graph/archive/master.zip
