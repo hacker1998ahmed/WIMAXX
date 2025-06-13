@@ -1,4 +1,4 @@
-# .github/workflows/kivy_android_build.yml (Dockerized Buildozer)
+# .github/workflows/kivy_android_build.yml (Corrected Docker Image Tag)
 
 name: Build Android APK (Dockerized Buildozer)
 
@@ -11,7 +11,7 @@ on:
 
 jobs:
   build-android-apk:
-    runs-on: ubuntu-latest # العودة إلى أحدث إصدار من Ubuntu
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository code
@@ -22,13 +22,10 @@ jobs:
           echo "Listing files in the current directory:"
           ls -la
 
-      # ✅ استخدام صورة Docker جاهزة لـ Buildozer
-      # هذه الصورة تحتوي على كل ما يلزم: Python، Buildozer، Android SDK، NDK
-      # هذا يقلل بشكل كبير من مشاكل التوافق والتثبيت
+      # ✅ تصحيح اسم صورة Docker والـ tag الخاص بها
+      # استخدام 'kivy/buildozer:latest' أو 'kivy/buildozer:python3'
       - name: Build APK using Dockerized Buildozer
-        # استخدام صورة Docker من Kivy مباشرة (معروفة بالعمل)
-        # يمكنك البحث عن صور أخرى إذا واجهت مشاكل
-        uses: docker://kivy/buildozer:stable
+        uses: docker://kivy/buildozer:latest # تم تغيير هذا إلى 'latest'
         with:
           args: python3 -m buildozer android debug # الأمر لتشغيل Buildozer داخل الـ container
 
