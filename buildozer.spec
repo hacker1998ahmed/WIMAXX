@@ -102,3 +102,8 @@ android.release.aab = False
 # android.release.keystore.alias = alias_name
 # android.release.keystore.password = keystore_password
 # android.release.keystore.alias_password = alias_password
+
+# (Str) Version of python-for-android to use
+# Try 'master' (default but specified for clarity) or 'develop'.
+# If problems persist, a specific commit hash might be needed:
+# android.p4a_version = master
