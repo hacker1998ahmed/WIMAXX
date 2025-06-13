@@ -1,4 +1,4 @@
-# اسم الملف: .github/workflows/kivy_android_build.yml (Final with 'yes' command fix)
+# اسم الملف: .github/workflows/kivy_android_build.yml (Final with NDK API & Build Tools compatibility fix)
 
 name: Build Android APK for WiFi Tester
 
@@ -41,13 +41,20 @@ jobs:
             ~/.pip
           key: ${{ runner.os }}-${{ hashFiles('buildozer.spec') }}
 
-      - name: Install system dependencies
+      - name: Install system dependencies for Buildozer & Compiling
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
             python3-pip \
             build-essential \
             git \
+            # أدوات البناء والتجميع الأساسية (تعديل الترتيب وإضافة m4 و pkg-config)
+            m4 \
+            autoconf \
+            automake \
+            libtool \
+            pkg-config \
+            # بقية الاعتماديات
             libsdl2-dev \
             libsdl2-image-dev \
             libsdl2-mixer-dev \
@@ -60,7 +67,7 @@ jobs:
             libgstreamer1.0-dev \
             gstreamer1.0-plugins-base \
             gstreamer1.0-plugins-good \
-            expect # تثبيت حزمة 'expect' التي توفر أمر 'yes'
+            expect
           sudo apt-get clean && sudo rm -rf /var/lib/apt/lists/*
 
       - name: Install Python dependencies
@@ -84,11 +91,15 @@ jobs:
         run: |
           sed -i 's/^log_level = .*$/log_level = 2/' buildozer.spec
           sed -i 's/^warn_on_root = .*$/warn_on_root = 0/' buildozer.spec
+          # --- التعديل هنا في buildozer.spec لـ NDK API ---
+          # سنحاول NDK API 26 (Android 8.0 Oreo) ليكون أكثر توافقاً
+          sed -i 's/^android.ndk_api = .*$/android.ndk_api = 26/' buildozer.spec
+          # If android.api is also set in buildozer.spec, ensure it's compatible
+          sed -i 's/^android.api = .*$/android.api = 30/' buildozer.spec # Ensure target API is modern
+          sed -i 's/^android.minapi = .*$/android.minapi = 21/' buildozer.spec # Min API can remain 21
 
-      # --- التعديل الأساسي هنا ---
       - name: Build APK with Buildozer (and auto-accept licenses)
         run: |
-          # استخدام أمر 'yes' لتمرير الموافقة تلقائيًا إلى أي طلب ترخيص
           yes | buildozer android debug
 
       - name: Upload APK Artifact
