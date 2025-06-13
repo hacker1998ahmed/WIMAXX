@@ -1,9 +1,10 @@
 # ==============================================================================
-#      Buildozer Specification File for WiFi Security Tester
+#      Buildozer Specification File for WiFi Security Tester - FINAL
 # ==============================================================================
 #
 # هذا الملف هو خارطة الطريق لـ Buildozer لبناء تطبيق الأندرويد.
 # يجب أن يكون هذا الملف في الجذر الرئيسي لمشروعك (your_project_root/).
+# يحتوي على كل الإعدادات المثلى والمعتمدة مباشرة.
 #
 # ==============================================================================
 
@@ -33,7 +34,8 @@ source.include_exts = py,png,jpg,kv,atlas,json,txt,ttf
 # يمكنك استبعاد المجلدات التي لا تحتاجها في التطبيق النهائي
 # source.exclude_dirs = tests, .github, docs
 
-# (Str) Application versioning (سيتم تحديثه بواسطة GitHub Actions إذا استخدمته)
+# (Str) Application versioning
+# يتم تحديد الإصدار هنا مباشرة (يمكن تحديثه يدويًا أو عبر سكريبت خارجي بسيط)
 version = 9.0
 
 # (List) Kivy requirements
@@ -60,12 +62,12 @@ fullscreen = 0
 [buildozer]
 
 # (Int) Log level (0 = error, 1 = info, 2 = debug)
-# سيتم تعديله إلى 2 بواسطة GitHub Actions للحصول على سجلات مفصلة
-log_level = 1
+# تم تعيينه مباشرة إلى 2 للحصول على سجلات مفصلة دائمًا في CI
+log_level = 2
 
 # (Int) Display warning if buildozer is run as root (0 = False, 1 = True)
-# سيتم تعديله إلى 0 بواسطة GitHub Actions لمنع التوقف
-warn_on_root = 1
+# تم تعيينه مباشرة إلى 0 لمنع التوقف في بيئة CI
+warn_on_root = 0
 
 # -----------------------------------------------------------------------------
 # Android specific options
@@ -82,19 +84,18 @@ android.api = 30
 # (Int) Minimum API required (أقل إصدار Android يمكن للتطبيق أن يعمل عليه)
 android.minapi = 21
 
-# (Int) Android NDK version to use (Buildozer عادة ما يختار الأفضل، لكن يمكنك تحديده)
-# android.ndk = 19c
+# (Int) Android NDK version to use (Buildozer عادة ما يختار الأفضل)
+# ✅ تحديث NDK API إلى 26 هنا مباشرة
+android.ndk_api = 26
 
 # (Int) Android SDK version to use (Buildozer عادة ما يختار الأفضل)
 # android.sdk = 24
 
 # (Str) The Android arch to build for, choices: armeabi-v7a, arm64-v8a, x86, x86_64
-# armeabi-v7a هو الأكثر توافقًا مع الأجهزة القديمة والجديدة.
-# arm64-v8a للأجهزة الحديثة 64-بت، إذا أردت بناء لـ 64-بت فقط.
 android.arch = armeabi-v7a
 
 # (Int) The Android version code. (يجب أن يزداد مع كل تحديث على المتجر)
-# سيتم تحديثه بواسطة GitHub Actions
+# يمكنك تحديثه يدويًا هنا، أو استخدام سكريبت بسيط (ليس sed) في الـ workflow إذا أردت أتمتة كاملة
 android.versioncode = 1
 
 # (List) The Android libraries to be included (.so files)
