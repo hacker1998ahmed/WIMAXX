@@ -11,7 +11,7 @@ on:
 
 jobs:
   build-android-apk:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04 # <--- هذا هو التغيير الحاسم هنا
 
     steps:
       - name: Checkout repository code
