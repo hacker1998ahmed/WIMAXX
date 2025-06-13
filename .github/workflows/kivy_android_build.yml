@@ -1,6 +1,6 @@
-# .github/workflows/kivy_android_build.yml (NO PYJNIUS VERSION)
+# .github/workflows/kivy_android_build.yml (Dockerized Buildozer)
 
-name: Build Android APK for WiFi Tester (No Jnius)
+name: Build Android APK (Dockerized Buildozer)
 
 on:
   push:
@@ -11,7 +11,7 @@ on:
 
 jobs:
   build-android-apk:
-    runs-on: ubuntu-20.04 # Keeping 20.04 as it worked for other steps
+    runs-on: ubuntu-latest # العودة إلى أحدث إصدار من Ubuntu
 
     steps:
       - name: Checkout repository code
@@ -22,83 +22,15 @@ jobs:
           echo "Listing files in the current directory:"
           ls -la
 
-      - name: Increase Swap Space
-        uses: pierotofy/set-swap-space@master
+      # ✅ استخدام صورة Docker جاهزة لـ Buildozer
+      # هذه الصورة تحتوي على كل ما يلزم: Python، Buildozer، Android SDK، NDK
+      # هذا يقلل بشكل كبير من مشاكل التوافق والتثبيت
+      - name: Build APK using Dockerized Buildozer
+        # استخدام صورة Docker من Kivy مباشرة (معروفة بالعمل)
+        # يمكنك البحث عن صور أخرى إذا واجهت مشاكل
+        uses: docker://kivy/buildozer:stable
         with:
-          swap-size-gb: 6
-
-      - name: Set up Python 3.9
-        uses: actions/setup-python@v5
-        with:
-          python-version: 3.9
-
-      - name: Cache Buildozer and Pip packages
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.buildozer
-            ~/.pip
-          key: ${{ runner.os }}-${{ hashFiles('buildozer.spec') }}
-
-      - name: Set up Java JDK 11
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '11'
-
-      - name: Install system dependencies (including build tools)
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
-            python3-pip \
-            build-essential \
-            git \
-            autoconf \
-            automake \
-            libtool \
-            libsdl2-dev \
-            libsdl2-image-dev \
-            libsdl2-mixer-dev \
-            libsdl2-ttf-dev \
-            libportmidi-dev \
-            libswscale-dev \
-            libavformat-dev \
-            libavcodec-dev \
-            zlib1g-dev \
-            libgstreamer1.0-dev \
-            gstreamer1.0-plugins-base \
-            gstreamer1.0-plugins-good \
-            expect
-          sudo apt-get clean && sudo rm -rf /var/lib/apt/lists/*
-
-      - name: Install Python dependencies (Buildozer & Project libs)
-        run: |
-          python3 -m pip install --upgrade pip
-          python3 -m pip install "cython<3.0"
-          python3 -m pip install buildozer
-          
-          # إنشاء ملف requirements.txt (بدون hostpython3 و pyjnius)
-          if [ ! -f requirements.txt ]; then
-            echo "kivy" > requirements.txt
-            echo "kivymd" >> requirements.txt
-            echo "plyer" >> requirements.txt
-            echo "https://github.com/kivy-garden/graph/archive/master.zip" >> requirements.txt
-          fi
-          
-          python3 -m pip install -r requirements.txt
-
-      - name: Prepare buildozer.spec for CI environment
-        run: |
-          sed -i 's/^log_level = .*$/log_level = 2/' buildozer.spec
-          sed -i 's/^warn_on_root = .*$/warn_on_root = 0/' buildozer.spec
-          # تحديث سطر requirements في buildozer.spec
-          sed -i 's/^requirements = .*$/requirements = kivy,kivymd,plyer,https:\/\/github.com\/kivy-garden\/graph\/archive\/master.zip/' buildozer.spec
-          sed -i "s/^version = .*$/version = ${{ github.run_number }}/" buildozer.spec
-          sed -i "s/^android.versioncode = .*$/android.versioncode = ${{ github.run_number }}/" buildozer.spec
-
-      - name: Build APK with Buildozer (auto-accept licenses)
-        run: |
-          yes | buildozer android debug
+          args: python3 -m buildozer android debug # الأمر لتشغيل Buildozer داخل الـ container
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
