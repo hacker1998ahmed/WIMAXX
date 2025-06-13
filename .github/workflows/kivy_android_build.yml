@@ -1,4 +1,4 @@
-# .github/workflows/kivy_android_build.yml (Back to Manual Install + Libffi Fixes)
+# .github/workflows/kivy_android_build.yml (Corrected apt-get comments)
 
 name: Build Android APK (Manual Install & Libffi Focus)
 
@@ -11,7 +11,7 @@ on:
 
 jobs:
   build-android-apk:
-    runs-on: ubuntu-latest # العودة إلى أحدث إصدار من Ubuntu
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository code
@@ -25,12 +25,12 @@ jobs:
       - name: Increase Swap Space
         uses: pierotofy/set-swap-space@master
         with:
-          swap-size-gb: 6 # الحجم الذي عمل جيدًا
+          swap-size-gb: 6
 
       - name: Set up Python 3.9
         uses: actions/setup-python@v5
         with:
-          python-version: 3.9 # إصدار Python المستقر لـ Buildozer
+          python-version: 3.9
 
       - name: Cache Buildozer and Pip packages
         uses: actions/cache@v4
@@ -46,7 +46,7 @@ jobs:
           distribution: 'temurin'
           java-version: '11'
 
-      # ✅ تثبيت اعتماديات النظام مع libffi-dev و python3-dev
+      # --- التعديل الأساسي هنا: إزالة التعليقات من سطر apt-get install ---
       - name: Install system dependencies (including libffi-dev & python3-dev)
         run: |
           sudo apt-get update
@@ -58,7 +58,7 @@ jobs:
             autoconf \
             automake \
             libtool \
-            libffi-dev \ # ✅ إضافة حزمة تطوير libffi
+            libffi-dev \
             libsdl2-dev \
             libsdl2-image-dev \
             libsdl2-mixer-dev \
@@ -74,41 +74,33 @@ jobs:
             expect
           sudo apt-get clean && sudo rm -rf /var/lib/apt/lists/*
 
-      # ✅ تثبيت python-for-android من فرع develop
+      # ... بقية الخطوات (لا تغيير) ...
       - name: Install Python dependencies (Buildozer & P4A develop & Project libs)
         run: |
           python3 -m pip install --upgrade pip
-          python3 -m pip install "cython<3.0" # تثبيت Cython 0.29.x
+          python3 -m pip install "cython<3.0"
           python3 -m pip install buildozer
-          
-          # ✅ تثبيت python-for-android من فرع develop
-          # هذا قد يحتوي على إصلاحات أحدث لمشاكل التجميع مثل libffi
           python3 -m pip install git+https://github.com/kivy/python-for-android.git@develop#egg=python-for-android
           
-          # إنشاء ملف requirements.txt
           if [ ! -f requirements.txt ]; then
             echo "hostpython3" > requirements.txt
             echo "kivy" >> requirements.txt
             echo "kivymd" >> requirements.txt
-            echo "pyjnius" >> requirements.txt # ✅ إعادة pyjnius
+            echo "pyjnius" >> requirements.txt
             echo "plyer" >> requirements.txt
             echo "https://github.com/kivy-garden/graph/archive/master.zip" >> requirements.txt
           fi
-          
           python3 -m pip install -r requirements.txt
 
       - name: Prepare buildozer.spec for CI environment
         run: |
           sed -i 's/^log_level = .*$/log_level = 2/' buildozer.spec
           sed -i 's/^warn_on_root = .*$/warn_on_root = 0/' buildozer.spec
-          # تحديث سطر requirements في buildozer.spec (يجب أن يكون مطابقًا لما تم تثبيته)
           sed -i 's/^requirements = .*$/requirements = hostpython3,kivy,kivymd,pyjnius,plyer,https:\/\/github.com\/kivy-garden\/graph\/archive\/master.zip/' buildozer.spec
-          # تعيين رقم الإصدار ورقم البناء
           sed -i "s/^version = .*$/version = ${{ github.run_number }}/" buildozer.spec
           sed -i "s/^android.versioncode = .*$/android.versioncode = ${{ github.run_number }}/" buildozer.spec
-          # ✅ تعيين P4A version صراحة إلى develop في buildozer.spec (مهم)
-          sed -i "s/^#\s*android.p4a_version\s*=.*$/android.p4a_version = develop/" buildozer.spec # لإلغاء التعليق وتعيين develop
-          if ! grep -q "android.p4a_version" buildozer.spec; then echo "android.p4a_version = develop" >> buildozer.spec; fi # إضافة إذا لم يكن موجودًا
+          sed -i "s/^#\s*android.p4a_version\s*=.*$/android.p4a_version = develop/" buildozer.spec
+          if ! grep -q "android.p4a_version" buildozer.spec; then echo "android.p4a_version = develop" >> buildozer.spec; fi
           
           echo "--- buildozer.spec final state ---"
           cat buildozer.spec
